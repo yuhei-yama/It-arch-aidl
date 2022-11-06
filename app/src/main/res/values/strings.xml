@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">it_arch_aidl</string>
+    <string name= "remote_service_connected">接続できたで</string>
+    <string name= "remote_service_disconnected">接続を断ちました</string>
+    <string name= "remote_call_failed">切断に失敗しました</string>
+    <string name="remote_service_binding">This demonstrates how you can connect with a persistent
+        service running in another process.  Use the kill button to see what happens when
+        the process crashes.</string>
+    <string name="bind_service">Bind Service</string>
+    <string name="unbind_service">Unbind Service</string>
+    <string name="kill_process">Kill Process</string>
+
+
 </resources>
