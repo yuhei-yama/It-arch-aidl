@@ -1,10 +1,12 @@
 package com.example.it_arch_aidl
 
 import android.content.ComponentName
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
+import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -20,6 +22,7 @@ import android.widget.Toast
 import com.example.it_arch_aidl.databinding.ActivityMainBinding
 import java.lang.ref.WeakReference
 
+
 private const val BUMP_MSG = 1
 
 class MainActivity : AppCompatActivity() {
@@ -27,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
-    private var mService: AiRemoteService? = null
+    private var mService: Secondary? = null
 
     /** Another interface we use on the service.  */
     internal var secondaryService: Secondary? = null
@@ -44,7 +47,6 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setSupportActionBar(binding.toolbar)
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -55,22 +57,36 @@ class MainActivity : AppCompatActivity() {
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
+
+        // Watch for button clicks.
+        var button: Button = findViewById(R.id.bind)
+        button.setOnClickListener(mBindListener)
+        button = findViewById(R.id.unbind)
+        button.setOnClickListener(unbindListener)
+        killButton = findViewById(R.id.kill)
+        killButton.setOnClickListener(killListener)
+        killButton.isEnabled = false
+
+        callbackText = findViewById(R.id.callback)
+        callbackText.text = "Not attached."
+        handler = InternalHandler(callbackText)
     }
     private val mConnection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
 
-            mService = AiRemoteService.Stub.asInterface(service)
+            mService = Secondary.Stub.asInterface(service)
             killButton.isEnabled = true
             callbackText.text = "Attached."
+            Log.d(TAG, "サービスと接続しました")
 
             // We want to monitor the service for as long as we are
             // connected to it.
-            try {
-                mService?.registerCallback(mCallback)
-            } catch (e: RemoteException) {
-
-            }
+//            try {
+//                mService?.registerCallback(mCallback)
+//            } catch (e: RemoteException) {
+//
+//            }
             Toast.makeText(
                 this@MainActivity,
                 R.string.remote_service_connected,
@@ -83,6 +99,7 @@ class MainActivity : AppCompatActivity() {
             mService = null
             killButton.isEnabled = false
             callbackText.text = "Disconnected."
+            Log.d(TAG, "サービスと切断が完了しました")
 
             Toast.makeText(
                 this@MainActivity,
@@ -92,28 +109,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val secondaryConnection = object : ServiceConnection {
-
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            // Connecting to a secondary interface is the same as any
-            // other interface.
-            secondaryService = Secondary.Stub.asInterface(service)
-            killButton.isEnabled = true
-        }
-
-        override fun onServiceDisconnected(className: ComponentName) {
-            secondaryService = null
-            killButton.isEnabled = false
-        }
-    }
+//    private val secondaryConnection = object : ServiceConnection {
+//
+//        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+//            // Connecting to a secondary interface is the same as any
+//            // other interface.
+//            secondaryService = Secondary.Stub.asInterface(service)
+//            killButton.isEnabled = true
+//        }
+//
+//        override fun onServiceDisconnected(className: ComponentName) {
+//            secondaryService = null
+//            killButton.isEnabled = false
+//        }
+//    }
 
     private val mBindListener = View.OnClickListener {
 
         val intent = Intent(this@MainActivity, RemoteService::class.java)
-        intent.action = RemoteService::class.java.name
+        intent.action = AiRemoteService::class.java.name
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
-        intent.action = Secondary::class.java.name
-        bindService(intent, secondaryConnection, Context.BIND_AUTO_CREATE)
+        Log.d(TAG, "バインド")
+
+//        intent.action = Secondary::class.java.name
+//        bindService(intent, secondaryConnection, Context.BIND_AUTO_CREATE)
         isBound = true
         callbackText.text = "Binding."
     }
@@ -121,18 +140,19 @@ class MainActivity : AppCompatActivity() {
     private val unbindListener = View.OnClickListener {
         if (isBound) {
 
-            try {
-                mService?.unregisterCallback(mCallback)
-            } catch (e: RemoteException) {
+//            try {
+//                mService?.unregisterCallback(mCallback)
+//            } catch (e: RemoteException) {
+//
+//            }
 
-            }
-
-            // Detach our existing connection.
+//            // Detach our existing connection.
             unbindService(mConnection)
-            unbindService(secondaryConnection)
+//            unbindService(secondaryConnection)
             killButton.isEnabled = false
             isBound = false
             callbackText.text = "Unbinding."
+            Log.d(TAG, "アンバインド")
         }
     }
 
