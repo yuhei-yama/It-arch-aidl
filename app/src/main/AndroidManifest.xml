@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.It_arch_aidl"
         tools:targetApi="31">
+        <service
+            android:name=".RemoteService">
+<!--            android:process="remote"-->
+<!--            android:exported="true">-->
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -19,6 +25,7 @@
             android:theme="@style/Theme.It_arch_aidl.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+<!--                <action android:name="android.intent.remoteservice.IT_SERVICE"/>-->
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

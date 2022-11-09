@@ -130,6 +130,10 @@ class MainActivity : AppCompatActivity() {
         intent.action = AiRemoteService::class.java.name
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
         Log.d(TAG, "バインド")
+        var serveAnswer = mService?.served("hello. remote_service").toString()
+        Log.d(TAG, serveAnswer)
+
+
 
 //        intent.action = Secondary::class.java.name
 //        bindService(intent, secondaryConnection, Context.BIND_AUTO_CREATE)
