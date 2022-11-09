@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
+import android.preference.PreferenceManager
 import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.it_arch_aidl.databinding.ActivityMainBinding
 import java.lang.ref.WeakReference
 
@@ -41,6 +43,37 @@ class MainActivity : AppCompatActivity() {
 
     private var isBound: Boolean = false
 
+    companion object{
+        private const val NIGHT_THEME = "night"
+
+    }
+
+    fun getNightTheme(context: Context): Boolean {
+        return PreferenceManager
+            .getDefaultSharedPreferences(context)
+            .getBoolean(NIGHT_THEME, false)
+    }
+
+    fun putNightTheme(context: Context, value: Boolean) {
+        PreferenceManager
+            .getDefaultSharedPreferences(context)
+            .edit()
+            .putBoolean(NIGHT_THEME, value)
+            .apply()
+    }
+
+    fun setDefaultNightMode(isChecked: Boolean) {
+        AppCompatDelegate.setDefaultNightMode(
+            if (isChecked) {
+
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else {
+
+                AppCompatDelegate.MODE_NIGHT_NO
+            }
+        )
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,14 +82,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
+        //color変更ボタン
+        val fab : Button = findViewById(R.id.fab)
+        fab.setOnClickListener(changeListener)
 
         // Watch for button clicks.
         var button: Button = findViewById(R.id.bind)
@@ -71,6 +99,18 @@ class MainActivity : AppCompatActivity() {
         callbackText.text = "Not attached."
         handler = InternalHandler(callbackText)
     }
+
+    var isChecked = MainActivity().getNightTheme(this@MainActivity)
+
+    val changeListener = object : View.OnClickListener{
+        override fun onClick(p0: View?){
+            putNightTheme(this@MainActivity, true)
+            setDefaultNightMode(true)
+        }
+    }
+
+
+
     private val mConnection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -109,21 +149,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private val secondaryConnection = object : ServiceConnection {
-//
-//        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-//            // Connecting to a secondary interface is the same as any
-//            // other interface.
-//            secondaryService = Secondary.Stub.asInterface(service)
-//            killButton.isEnabled = true
-//        }
-//
-//        override fun onServiceDisconnected(className: ComponentName) {
-//            secondaryService = null
-//            killButton.isEnabled = false
-//        }
-//    }
-
     private val mBindListener = View.OnClickListener {
 
         val intent = Intent(this@MainActivity, RemoteService::class.java)
@@ -133,10 +158,6 @@ class MainActivity : AppCompatActivity() {
         var serveAnswer = mService?.served("hello. remote_service").toString()
         Log.d(TAG, serveAnswer)
 
-
-
-//        intent.action = Secondary::class.java.name
-//        bindService(intent, secondaryConnection, Context.BIND_AUTO_CREATE)
         isBound = true
         callbackText.text = "Binding."
     }
@@ -152,7 +173,7 @@ class MainActivity : AppCompatActivity() {
 
 //            // Detach our existing connection.
             unbindService(mConnection)
-//            unbindService(secondaryConnection)
+
             killButton.isEnabled = false
             isBound = false
             callbackText.text = "Unbinding."
@@ -174,7 +195,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val mCallback = object : RemoteServiceCallback.Stub() {
-
         override fun valueChanged(value: Int) {
             handler.sendMessage(handler.obtainMessage(BUMP_MSG, value, 0))
         }
@@ -191,26 +211,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    override fun onDestroy() {
+        super.onDestroy()
+    }
 
-//    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        menuInflater.inflate(R.menu.menu_main, menu)
-//        return true
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        return when (item.itemId) {
-//            R.id.action_settings -> true
-//            else -> super.onOptionsItemSelected(item)
-//        }
-//    }
-//
-//    override fun onSupportNavigateUp(): Boolean {
-//        val navController = findNavController(R.id.nav_host_fragment_content_main)
-//        return navController.navigateUp(appBarConfiguration)
-//                || super.onSupportNavigateUp()
-//    }
+
 }
