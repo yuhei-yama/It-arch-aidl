@@ -53,6 +53,9 @@ class RemoteService: Service() {
             aString: String
         ) {
             // Does nothing
+      }
+        override fun served(input : String): String{
+            return input+" やったぜ"
         }
     }
 }
